@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>显示</title>
+    <meta charset="utf-8">
+    {% load static %}
+    <script src="{% static "webstat/echarts.min.js" %}">
+    </script>
+</head>
+<body>
+<ul>
+    {% for item in data %}
+        <li>
+            <a href="{{ item.title }}/">{{ item.title }}:{{ item.dcount }}</a><br>
+        </li>
+    {% endfor %}
+</ul>
+</body>

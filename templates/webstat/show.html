@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>显示</title>
+    <meta charset="utf-8">
+    {% load static %}
+    <script src="{% static "webstat/echarts.min.js" %}">
+    </script>
+</head>
+<body>
+<script type="text/javascript">
+    var date = [{% for d in dates %}{{ d }}, {% endfor %}];
+    var now = new Date();
+    var today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    var year = new Date(now.getFullYear());
+    var month = new Date(now.getMonth() + 1);
+
+    now_ts = Date.parse(now.toString());
+    today_ts = Date.parse(today.toString());
+    tomorrow_ts = today_ts + 24 * 3600 * 1000;
+    year_ts = Date.parse(new Date(now.getFullYear(), 0, 1).toString());
+    month_ts = Date.parse(new Date(now.getFullYear(), now.getMonth(), 1).toString());
+    var data_start = 0;
+    var data_end = 100;
+    date = date.map(function (x) {
+        x = x * 1000;
+        var d = new Date(x);
+        var year = d.getFullYear();
+        var month = d.getMonth() + 1;
+        var day = d.getDate();
+        if (x < year_ts) {
+            return year + "-" + month + "-" + day;
+        } else if (x < month_ts) {
+            return month + "-" + day;
+        } else if (x < today_ts) {
+            return month + "-" + day + " " + d.getHours() + ":" + d.getMinutes();
+        } else if (x >= today_ts && x < tomorrow_ts) {
+            return d.getHours() + ":" + d.getMinutes();
+        } else if (x >= tomorrow_ts) {
+            return year + "-" + month + "-" + day;
+        }
+    });
+    var data = [{% for v in values %}{{ v }}, {% endfor %}];
+    if (data.length > 10000) {
+        data_start = 90;
+        data_end = 100;
+    } else if (data.length > 100) {
+        data_start = 50;
+        data_end = 100;
+    }
+</script>
+<div id="nag">
+    <a href="../">all</a>
+</div>
+<div id="content">
+    <h1 style="text-align: center">{{ title }}</h1>
+    <div id="main" style="width: 100%;height:400px;"></div>
+</div>
+<script type="text/javascript">
+    var base = +new Date(1968, 9, 3);
+    var oneDay = 24 * 3600 * 1000;
+    option = {
+        tooltip: {
+            trigger: 'axis',
+            position: function (pt) {
+                return [pt[0], '10%'];
+            }
+        },
+        title: {
+            left: 'center',
+            text: '大数据量折线图',
+        },
+        legend: {
+            top: 'bottom',
+            data: ['意向']
+        },
+        toolbox: {
+            show: true,
+            feature: {
+                dataView: {show: true, readOnly: false},
+                magicType: {show: true, type: ['line', 'bar', 'stack', 'tiled']},
+                restore: {show: true},
+                saveAsImage: {show: true}
+            }
+        },
+        xAxis: {
+            type: 'category',
+            boundaryGap: false,
+            data: date,
+        },
+        yAxis: {
+            type: 'value',
+            boundaryGap: [0, '100%'],
+            scale: 'true',
+        },
+        dataZoom: [{
+            type: 'slider',
+            start: data_start,
+            end: data_end
+        }],
+        series: [
+            {
+                name: '模拟数据',
+                type: 'line',
+                smooth: true,
+                symbol: 'none',
+                sampling: 'max',
+                itemStyle: {
+                    normal: {
+                        color: 'rgb(255, 70, 131)'
+                    }
+                },
+                areaStyle: {
+                    normal: {
+                        color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{
+                            offset: 0,
+                            color: 'rgb(255, 158, 68)'
+                        }, {
+                            offset: 1,
+                            color: 'rgb(255, 70, 131)'
+                        }])
+                    }
+                },
+                data: data
+            }
+        ]
+    };
+    var myChart = echarts.init(document.getElementById('main'));
+    myChart.setOption(option);
+</script>
+</body>
+</html>
