@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no"/>
+    <title>腾讯地图</title>
+    {% load static %}
+    <script src="{% static "common/jquery-3.0.0.min.js" %}">
+    </script>
+    <script charset="utf-8"
+            src="http://map.qq.com/api/js?v=2.exp&key=VORBZ-A543F-PSIJ2-JP34Y-MK7XF-F5FE7&libraries=drawing,geometry,autocomplete,convertor"></script>
+    <style type="text/css">
+        body, html, #map {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            margin: 0;
+        }
+
+        button {
+            width: 100px;
+            height: 70px;
+        }
+    </style>
+</head>
+<body>
+<script type="text/javascript">
+    var orig = {latitude: 0, longitude: 0};
+    var coords = {latitude: 0, longitude: 0};
+    var all_path = [{% for x in all_path %}'{{ x }}', {% endfor %}]
+    var curPath = '{{ path }}';
+    var pos = {{ pos }};
+    var update = false;
+    function updatePosition() {
+        if (update) {
+            return;
+        }
+        if (navigator.geolocation) {
+            update = true;
+            navigator.geolocation.getCurrentPosition(function (position) {
+                if (orig.latitude == position.latitude && orig.longitude == position.longitude) {
+                    update = false;
+                    return;
+                }
+                new BMap.Convertor().translate([new BMap.Point(position.coords.longitude, position.coords.latitude)], 1, 5,
+                        function (data) {
+                            update = false;
+                            if (data.status == 0) {
+                                var point = data.points[0];
+                                coords.longitude = point.lng;
+                                coords.latitude = point.lat;
+                            }
+                        });
+            });
+        }
+    }
+
+    function autoUpdate() {
+        updatePosition();
+    }
+
+    function loop() {
+        $('#longitude').val(coords.longitude);
+        $('#latitude').val(coords.latitude);
+    }
+    function updatePathUpload() {
+        all_path.forEach(function (x) {
+            $('#pathUpload').append("<button onclick='show(\"" + x + "\")'>" + x + "</button>");
+        });
+    }
+    function newPath() {
+        curPath = window.prompt('提示', '街道名字');
+        if (curPath == '街道名字' || curPath == null) {
+            return;
+        }
+        location.href = '/path/addPath?path=' + curPath;
+    }
+
+    $(function () {
+        setInterval(loop, 100);
+        setInterval(autoUpdate, 100);
+        updatePathUpload();
+    });
+    function show(path) {
+        location.href = '/path/show_t/' + path;
+    }
+    function upload(path) {
+        var title = window.prompt('节点描述', '$道路节点$');
+        if (title == null) {
+            return;
+        }
+        var href = '/path/add?path=' + path + '&lng=' + coords.longitude + '&lat=' + coords.latitude;
+        if (title != "$道路节点$" && title.length > 0) {
+            href += '&title=' + title;
+        }
+        location.href = href;
+    }
+</script>
+<div id="pos">
+    东经: <input id="longitude" type="text" value="-" title="东经" readonly>
+    北纬: <input id="latitude" type="text" value="-" title="北纬" readonly>
+    <br>
+    <div style="float: right">
+        <button onclick="updateMap()">更新</button>
+        <button onclick="newPath()">新街道</button>
+    </div>
+    <div>
+        <div id="pathUpload">
+        </div>
+    </div>
+</div>
+<div id="map">
+
+</div>
+<script type="text/javascript">
+    var center = new qq.maps.LatLng(24.492318, 118.107093);
+    var map = new qq.maps.Map(document.getElementById("map"), {
+        // 地图的中心地理坐标。
+        center: center,
+        zoom: 15,
+    });
+    new qq.maps.Marker({
+        position: center,
+        map: map,
+    });
+    var anchor = new qq.maps.Point(12.5, 12.5);
+    var size = new qq.maps.Size(25, 25);
+    var origin = new qq.maps.Point(0, 0);
+    var markerIcon = new qq.maps.MarkerImage(
+            "{% static "path/point.gif" %}",
+            size,
+            origin,
+            anchor
+    );
+    pos.forEach(function (x) {
+        var marker = new qq.maps.Marker({
+            position: new qq.maps.LatLng(x[1], x[0]),
+            map: map,
+        });
+        marker.setIcon(markerIcon);
+    });
+    function updateMap() {
+
+    }
+</script>
+</body>
+</html>

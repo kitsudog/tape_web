@@ -44,3 +44,19 @@ def show(request, path=''):
         'pos': map(lambda x: [x.longitude, x.latitude], pos)
     }
     return render(request, 'path/show.html', content)
+
+
+def show_t(request, path=''):
+    path = path.encode('utf8')
+    pos = []
+    all_path = map(lambda x: x.title.encode('utf8'), Path.objects.all())
+    if 'path' in request.GET:
+        path = request.GET['path']
+    if path in set(all_path):
+        pos = Position.objects.filter(path__title=path)
+    content = {
+        'all_path': all_path,
+        'path': path.title,
+        'pos': map(lambda x: [x.longitude, x.latitude], pos)
+    }
+    return render(request, 'path/show_t.html', content)
