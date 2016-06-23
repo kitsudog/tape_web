@@ -20,5 +20,5 @@ from django.contrib import admin
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url(r'^webstat/', include('webstat.urls')),
-
+    url(r'^path/', include('path.urls')),
 ]

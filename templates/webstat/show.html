@@ -17,11 +17,13 @@
 
     now_ts = Date.parse(now.toString());
     today_ts = Date.parse(today.toString());
+    yesterday_ts = today_ts - 24 * 3600 * 1000;
     tomorrow_ts = today_ts + 24 * 3600 * 1000;
     year_ts = Date.parse(new Date(now.getFullYear(), 0, 1).toString());
     month_ts = Date.parse(new Date(now.getFullYear(), now.getMonth(), 1).toString());
     var data_start = 0;
     var data_end = 100;
+    var near_cnt = 0;
     date = date.map(function (x) {
         x = x * 1000;
         var d = new Date(x);
@@ -32,21 +34,33 @@
             return year + "-" + month + "-" + day;
         } else if (x < month_ts) {
             return month + "-" + day;
+        } else if (x < yesterday_ts) {
+            return month + "-" + day + " " + d.getHours() + ":" + d.getMinutes();
         } else if (x < today_ts) {
+            near_cnt++;
             return month + "-" + day + " " + d.getHours() + ":" + d.getMinutes();
         } else if (x >= today_ts && x < tomorrow_ts) {
+            near_cnt++;
             return d.getHours() + ":" + d.getMinutes();
         } else if (x >= tomorrow_ts) {
+            near_cnt++;
             return year + "-" + month + "-" + day;
         }
     });
     var data = [{% for v in values %}{{ v }}, {% endfor %}];
-    if (data.length > 10000) {
+    if (near_cnt < 10000) {
+        data_start = 100 - near_cnt * 100 / data.length;
+        data_end = 100;
+    } else if (data.length > 10000) {
         data_start = 90;
         data_end = 100;
     } else if (data.length > 100) {
         data_start = 50;
         data_end = 100;
+    }
+    var data2 = [0];
+    for (var i = 0; i < data.length - 1; i++) {
+        data2.push(Math.max(0, data[i + 1] - data[i]));
     }
 </script>
 <div id="nag">
@@ -59,7 +73,7 @@
 <script type="text/javascript">
     var base = +new Date(1968, 9, 3);
     var oneDay = 24 * 3600 * 1000;
-    option = {
+    var option = {
         tooltip: {
             trigger: 'axis',
             position: function (pt) {
@@ -77,11 +91,21 @@
         toolbox: {
             show: true,
             feature: {
+                myTool1: {
+                    show: true,
+                    title: '增量',
+                    icon: 'path://M432.45,595.444c0,2.177-4.661,6.82-11.305,6.82c-6.475,0-11.306-4.567-11.306-6.82s4.852-6.812,11.306-6.812C427.841,588.632,432.452,593.191,432.45,595.444L432.45,595.444z M421.155,589.876c-3.009,0-5.448,2.495-5.448,5.572s2.439,5.572,5.448,5.572c3.01,0,5.449-2.495,5.449-5.572C426.604,592.371,424.165,589.876,421.155,589.876L421.155,589.876z M421.146,591.891c-1.916,0-3.47,1.589-3.47,3.549c0,1.959,1.554,3.548,3.47,3.548s3.469-1.589,3.469-3.548C424.614,593.479,423.062,591.891,421.146,591.891L421.146,591.891zM421.146,591.891',
+                    onclick: function () {
+                        option.series[0].data = data2;
+                        myChart.setOption(option, false, true);
+                    }
+                },
                 dataView: {show: true, readOnly: false},
                 magicType: {show: true, type: ['line', 'bar', 'stack', 'tiled']},
                 restore: {show: true},
                 saveAsImage: {show: true}
             }
+
         },
         xAxis: {
             type: 'category',

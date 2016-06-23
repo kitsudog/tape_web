@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    {% load static %}
+    <script src="{% static "common/jquery-3.0.0.min.js" %}">
+    </script>
+    <script src="http://api.map.baidu.com/api?v=2.0&ak=beU2NzaTv6G8zLz4dHmDkQdFSYlc7lce" type="text/javascript">
+    </script>
+    <style type="text/css">
+        body, html, #map {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            margin: 0;
+        }
+
+        button {
+            width: 100px;
+            height: 70px;
+        }
+    </style>
+</head>
+<body>
+<script type="text/javascript">
+    var orig = {latitude: 0, longitude: 0};
+    var coords = {latitude: 0, longitude: 0};
+    var all_path = [{% for x in all_path %}'{{ x }}', {% endfor %}]
+    var curPath = '{{ path }}';
+    var pos = {{ pos }};
+    var update = false;
+    function updatePosition() {
+        if (update) {
+            return;
+        }
+        if (navigator.geolocation) {
+            update = true;
+            navigator.geolocation.getCurrentPosition(function (position) {
+                if (orig.latitude == position.latitude && orig.longitude == position.longitude) {
+                    update = false;
+                    return;
+                }
+                new BMap.Convertor().translate([new BMap.Point(position.coords.longitude, position.coords.latitude)], 1, 5,
+                        function (data) {
+                            update = false;
+                            if (data.status == 0) {
+                                var point = data.points[0];
+                                coords.longitude = point.lng;
+                                coords.latitude = point.lat;
+                            }
+                        });
+            });
+        }
+    }
+
+    function autoUpdate() {
+        updatePosition();
+    }
+
+    function loop() {
+        $('#longitude').val(coords.longitude);
+        $('#latitude').val(coords.latitude);
+    }
+    function updatePathUpload() {
+        if (curPath.length > 0) {
+            $('#pathUpload').append("<button style='width:100px' onclick='upload(\"" + curPath + "\")'>提交" + curPath + "</button>");
+        }
+        all_path.forEach(function (x) {
+            $('#pathUpload').append("<button onclick='show(\"" + x + "\")'>" + x + "</button>");
+        });
+    }
+    function newPath() {
+        curPath = window.prompt('提示', '街道名字');
+        if (curPath == '街道名字' || curPath == null) {
+            return;
+        }
+        location.href = '/path/addPath?path=' + curPath;
+    }
+
+    $(function () {
+        setInterval(loop, 100);
+        setInterval(autoUpdate, 100);
+        updatePathUpload();
+    });
+    function show(path) {
+        location.href = '/path/show/' + path;
+    }
+    function upload(path) {
+        var title = window.prompt('节点描述', '$道路节点$');
+        if (title == null) {
+            return;
+        }
+        var href = '/path/add?path=' + path + '&lng=' + coords.longitude + '&lat=' + coords.latitude;
+        if (title != "$道路节点$" && title.length > 0) {
+            href += '&title=' + title;
+        }
+        location.href = href;
+    }
+</script>
+<div id="pos">
+    东经: <input id="longitude" type="text" value="-" title="东经" readonly>
+    北纬: <input id="latitude" type="text" value="-" title="北纬" readonly>
+    <br>
+    <div style="float: right">
+        <button onclick="updateMap()">更新</button>
+        <button onclick="newPath()">新街道</button>
+    </div>
+    <div>
+        <div id="pathUpload">
+        </div>
+    </div>
+</div>
+<div id="map">
+
+</div>
+<script type="text/javascript">
+    // 百度地图API功能
+    var map = new BMap.Map("map");    // 创建Map实例
+    map.centerAndZoom(new BMap.Point(118.11357, 24.49847), 19);  // 初始化地图,设置中心点坐标和地图级别
+    map.setCurrentCity("北京");          // 设置地图显示的城市 此项是必须设置的
+    map.enableScrollWheelZoom(true);    //开启鼠标滚轮缩放
+    map.addOverlay(new BMap.PointCollection(pos.map(function (x) {
+        return new BMap.Point(x[0], x[1]);
+    }), {
+        size: BMAP_POINT_SIZE_NORMAL,
+        shape: BMAP_POINT_SHAPE_CIRCLE,
+        color: '#0000FF'
+    }));
+    function updateMap() {
+        // coords.longitude = 118.11357, coords.latitude = 24.49847;
+        var point = new BMap.Point(coords.longitude, coords.latitude);
+        map.centerAndZoom(point, map.getZoom());
+        map.addOverlay(new BMap.Marker(point));               // 将标注添加到地图中
+    }
+</script>
+</body>
+</html>
