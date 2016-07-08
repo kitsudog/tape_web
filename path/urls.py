@@ -10,4 +10,5 @@ urlpatterns = [
     url(r'^show/(?P<path>[^/]+)$', views.show),
     url(r'^show_t$', views.show_t),
     url(r'^show_t/(?P<path>[^/]+)$', views.show_t),
+    url(r'^draw_t/(?P<path>[^/]+)$', views.draw_t),
 ]

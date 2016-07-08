@@ -7,8 +7,7 @@
     {% load static %}
     <script src="{% static "common/jquery-3.0.0.min.js" %}">
     </script>
-    <script charset="utf-8"
-            src="http://map.qq.com/api/js?v=2.exp&key=VORBZ-A543F-PSIJ2-JP34Y-MK7XF-F5FE7&libraries=drawing,geometry,autocomplete,convertor"></script>
+    <script charset="utf-8" src="http://map.qq.com/api/js?v=2.exp&key=VORBZ-A543F-PSIJ2-JP34Y-MK7XF-F5FE7"></script>
     <style type="text/css">
         body, html, #map {
             width: 100%;
@@ -132,13 +131,24 @@
             origin,
             anchor
     );
-    pos.forEach(function (x) {
-        var marker = new qq.maps.Marker({
-            position: new qq.maps.LatLng(x[1], x[0]),
-            map: map,
+    var markers = [];
+    $(function () {
+        pos.forEach(function (x) {
+            var position = new qq.maps.LatLng(x[1], x[0]);
+            var marker = new qq.maps.Marker({
+                position: position,
+                map: map,
+            });
+            marker.setIcon(markerIcon);
+            markers.push(marker);
         });
-        marker.setIcon(markerIcon);
     });
+    function print() {
+        return markers.map(function (x) {
+            var p = x.getProjection();
+            return p.fromLatLngToContainerPixel(x.position)
+        });
+    }
     function updateMap() {
 
     }

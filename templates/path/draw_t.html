@@ -1,0 +1,86 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="{% static "common/jquery-3.0.0.min.js" %}"></script>
+    <script type="text/javascript">
+        function Point(x, y) {
+            this.x = x;
+            this.y = y;
+        }
+
+        function degreesToRadians(deg) {
+            return deg * (Math.PI / 180);
+        }
+
+        function radiansToDegrees(rad) {
+            return rad / (Math.PI / 180);
+        }
+
+        function _fromLatLngToPoint(lng, lat, zoom) {
+            zoom = zoom || 15;
+            var point = {x: 0, y: 0};
+            point.x = 128 + lng * 256 / 360;
+            var sin_y = Math.min(Math.max(Math.sin(degreesToRadians(lat)), -0.9999), 0.9999);
+            point.y = 128 + 0.5 * Math.log((1 + sin_y) / (1 - sin_y)) * -(128 / Math.PI);
+            point.x *= Math.pow(2, zoom);
+            point.y *= Math.pow(2, zoom);
+            return point;
+        }
+        function fromLatLngToPoint(pos, tl, br, width, height) {
+            var rx = width / (br.x - tl.x);
+            var ry = height / (br.y - tl.y);
+            var r = Math.min(rx, ry);
+            return new Point(Math.floor((pos.x - tl.x) * r), Math.floor((pos.y - tl.y) * r));
+        }
+    </script>
+    <script type="text/javascript">
+        var curPath = '{{ path }}';
+        var pos = [];
+        pos = pos.concat({{ pos }});
+        var point = pos.map(function (x) {
+            return _fromLatLngToPoint(x[0], x[1]);
+        });
+        var top_left = new Point(Math.min.apply(null, point.map(function (p) {
+            return p.x;
+        })), Math.min.apply(null, point.map(function (p) {
+            return p.y;
+        })));
+        var bottom_right = new Point(Math.max.apply(null, point.map(function (p) {
+            return p.x;
+        })), Math.max.apply(null, point.map(function (p) {
+            return p.y;
+        })));
+        var w = bottom_right.x - top_left.x;
+        var h = bottom_right.y - top_left.y;
+        var tl = new Point(top_left.x - w * 0.2, top_left.y - h * 0.2);
+        var br = new Point(bottom_right.x + w * 0.2, bottom_right.y + h * 0.2);
+    </script>
+</head>
+<body>
+    
+<div id="container">
+    <canvas id="canvas" width="400" height="400">
+
+    </canvas>
+</div>
+    
+<script type="text/javascript">
+    var canvasDom = document.getElementById("canvas");
+    var context = canvasDom.getContext('2d');
+    var width = canvasDom.width;
+    var height = canvasDom.height;
+    function draw(points, scale) {
+        scale = scale || 1;
+        points.forEach(function (p) {
+            context.fillRect(p.x * scale, p.y * scale, 10, 10);
+        });
+    }
+    draw(point.map(function (p) {
+        return fromLatLngToPoint(p, tl, br, width, height);
+    }));
+</script>
+</body>
+</html>
