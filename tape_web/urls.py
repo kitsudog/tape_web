@@ -21,4 +21,5 @@ urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url(r'^webstat/', include('webstat.urls')),
     url(r'^path/', include('path.urls')),
+    url(r'^mock/', include('mock.urls')),
 ]
