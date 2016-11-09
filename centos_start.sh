@@ -30,7 +30,6 @@ pip2.7 install -r requirements.txt --trusted-host mirrors.aliyun.com -i http://m
 mysql -h$MYSQL_PORT_3306_TCP_ADDR -uroot -e"CREATE DATABASE IF NOT EXISTS $DB DEFAULT CHARSET utf8 COLLATE utf8_general_ci"
 python2.7 manage.py makemigrations --noinput
 python2.7 manage.py migrate
-python2.7 manage.py InitServer
 
 set +euo pipefail
 if [ '$1' == "check" ]

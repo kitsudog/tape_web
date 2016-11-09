@@ -7,9 +7,9 @@ tape_web:
   entrypoint: ./centos_start.sh
   environment:
     - VIRTUAL_HOST=web.tapecloud.cc
-    - VIRTUAL_PORT=8080
+    - VIRTUAL_PORT=8000
   ports:
-    - "8080"
+    - "8000"
   external_links:
     - mysql5:mysql
     - memcached
