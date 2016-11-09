@@ -1,0 +1,5 @@
+Django==1.9.7
+django-cron==0.4.6
+MySQL-python
+requests
+python-memcached

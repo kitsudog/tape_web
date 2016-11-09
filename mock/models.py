@@ -7,6 +7,7 @@ from django.db import models
 class Title(models.Model):
     name = models.CharField(max_length=255)
     cur = models.PositiveIntegerField(default=0)
+    start = models.DateTimeField(auto_now_add=True)
 
 
 class Data(models.Model):
@@ -14,3 +15,4 @@ class Data(models.Model):
     content = models.TextField(max_length=10240, default="{}")
     file = models.FileField(upload_to='upload')
     is_file = models.NullBooleanField(null=False)
+    time = models.FloatField(default=0)

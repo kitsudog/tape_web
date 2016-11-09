@@ -11,4 +11,6 @@ urlpatterns = [
     url(r'^show_t$', views.show_t),
     url(r'^show_t/(?P<path>[^/]+)$', views.show_t),
     url(r'^draw_t/(?P<path>[^/]+)$', views.draw_t),
+    url(r'^baidu_map/(?P<url>.+)', views.baidu_map),
+    url(r'^baidu_mock', views.mock),
 ]
