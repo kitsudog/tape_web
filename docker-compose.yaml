@@ -6,7 +6,7 @@ tape_web:
   working_dir: /app/server
   entrypoint: ./centos_start.sh
   environment:
-    - VIRTUAL_HOST=web.tapecloud.cn
+    - VIRTUAL_HOST=web.tapecloud.cc
     - VIRTUAL_PORT=8080
   ports:
     - "8080"
